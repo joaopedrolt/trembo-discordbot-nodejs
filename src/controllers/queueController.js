@@ -9,7 +9,6 @@ export default class QueueController {
   static queueReply = [];
   static currentTrackIndex = 0;
   static nextTrackIndex = QueueController.currentTrackIndex + 1;
-  static stopButtonPressed = false;
 
   static currentTrack = {};
 
@@ -17,6 +16,8 @@ export default class QueueController {
   static playlists = [];
   static movingIntoPlaylist = false;
   static playlistTrackCounter = 0;
+
+  static stopCommandIssued = false;
 
   static moveActiveRow(lastTrack = false) {
     const currentReply =
@@ -119,21 +120,21 @@ export default class QueueController {
         if (QueueController.queueReply[QueueController.nextTrackIndex]) {
           QueueController.moveActiveRow();
         } else {
-          if (!QueueController.stopButtonPressed) {
-            QueueController.moveActiveRow(true);
+          QueueController.moveActiveRow(true);
 
+          if (!QueueController.stopCommandIssued) {
             QueueController.queueReply[QueueController.currentTrackIndex].reply(
               queueEmptyEmbed()
             );
           } else {
-            QueueController.stopButtonPressed = false;
+            QueueController.stopCommandIssued = false;
           }
 
           QueueController.queueReply = [];
           QueueController.currentTrackIndex = 0;
           QueueController.nextTrackIndex =
             QueueController.currentTrackIndex + 1;
-          QueueController.stopButtonPressed = false;
+          QueueController.stopCommandIssued = false;
           QueueController.anyPlaylistOngoing = false;
           QueueController.playlists = [];
           QueueController.movingIntoPlaylist = false;

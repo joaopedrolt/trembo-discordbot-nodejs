@@ -79,7 +79,7 @@ export function getPlayPlaylistEmbed(
 export function getPlaylistAddedEmbed(playlist, addedBy) {
   const embed = {
     footer: {
-      text: `Tamanho (lenght): ${playlist.tracks.length}.\nAutor (author): ${playlist.author.name}.\nAdicionado por (added by): ${addedBy}.`,
+      text: `Tamanho (lenght): ${playlist.tracks.length} músicas.\nAutor (author): ${playlist.author.name}.\nAdicionado por (added by): ${addedBy}.`,
       icon_url: "",
     },
     image: {

@@ -1,4 +1,4 @@
-import { Playlist, QueryType } from "discord-player";
+import { QueryType } from "discord-player";
 import { ComponentType } from "discord.js";
 import {
   getPlayPlaylistEmbed,
@@ -8,7 +8,6 @@ import {
 import QueueController from "../../controllers/queueController.js";
 import skipEmbed from "../../embeds/music/skipEmbed.js";
 import stopEmbed from "../../embeds/music/stopEmbed.js";
-import { disabledPlayButtonRow } from "../../embeds/music/buttonRowEmbed.js";
 import isYoutubePlaylist from "../../utils/urlTools/isYoutubePlaylist.js";
 import isValidUrl from "../../utils/urlTools/isValidUrl.js";
 
@@ -225,11 +224,9 @@ export default {
       collector.on("collect", async (interaction) => {
         if (interaction.customId == "stop") {
           try {
-            QueueController.stopButtonPressed = true;
+            QueueController.stopCommandIssued = true;
 
             queue.delete();
-
-            reply.edit(disabledPlayButtonRow());
 
             return interaction.reply(stopEmbed(interaction.member.nickname));
           } catch (error) {
