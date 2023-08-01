@@ -31,5 +31,6 @@ export function cooldownEmbed() {
         title: "Trembo Bot",
       },
     ],
+    ephemeral: true
   };
 }

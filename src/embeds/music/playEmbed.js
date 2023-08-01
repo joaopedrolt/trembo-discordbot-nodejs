@@ -1,40 +1,11 @@
-import {
-  EmbedBuilder,
-  ButtonBuilder,
-  ActionRowBuilder,
-  ButtonStyle,
-} from "discord.js";
+import { getPlayButtonRow } from "./buttonRowEmbed.js";
 
-export function getPlayButtonRow(embedUpdate = false) {
-  const buttonRow = new ActionRowBuilder();
-
-  buttonRow.addComponents(
-    new ButtonBuilder()
-      .setCustomId("stop")
-      .setLabel("Parar")
-      .setStyle(ButtonStyle.Danger)
-  );
-
-  buttonRow.addComponents(
-    new ButtonBuilder()
-      .setCustomId("skip")
-      .setLabel("Pular")
-      .setStyle(ButtonStyle.Primary)
-  );
-
-  return !embedUpdate
-    ? buttonRow
-    : {
-        components: [buttonRow],
-      };
-}
-
-export function getPlayEmbed(channel, isPlaying, song, userNickname) {
+export function getPlaySongEmbed(channel, isPlaying, song, addedBy) {
   const buttonRow = getPlayButtonRow();
 
   const embed = {
     footer: {
-      text: `Duração (duration): ${song.duration}\nCanal (channel): ${channel}.\nAdicionado por (added by): ${userNickname}.`,
+      text: `Duração (duration): ${song.duration}\nCanal (channel): ${channel}.\nAdicionado por (added by): ${addedBy}.`,
       icon_url: "",
     },
     image: {
@@ -65,26 +36,71 @@ export function getPlayEmbed(channel, isPlaying, song, userNickname) {
       };
 }
 
-export function disabledPlayButtonRow() {
-  const buttonRow = new ActionRowBuilder();
+export function getPlayPlaylistEmbed(
+  playlistTitle,
+  playlistLength,
+  playlistUrl,
+  playlistAuthor,
+  playlistCurrentPosition,
+  addedBy,
+  currentTrack
+) {
+  const buttonRow = getPlayButtonRow();
 
-  buttonRow.addComponents(
-    new ButtonBuilder()
-      .setCustomId("stop")
-      .setLabel("Parar")
-      .setStyle(ButtonStyle.Danger)
-      .setDisabled(true)
-  );
-
-  buttonRow.addComponents(
-    new ButtonBuilder()
-      .setCustomId("skip")
-      .setLabel("Pular")
-      .setStyle(ButtonStyle.Primary)
-      .setDisabled(true)
-  );
+  const embed = {
+    footer: {
+      text: `Duração (duration): ${currentTrack.durationFormatted}\nProgresso (progress): música ${playlistCurrentPosition} de ${playlistLength}.\nAutor (author): ${playlistAuthor}.\nAdicionado por (added by): ${addedBy}.`,
+      icon_url: "",
+    },
+    image: {
+      url: currentTrack.thumbnail.url,
+    },
+    thumbnail: {
+      url: "",
+    },
+    author: {
+      name: "joaopedrolt",
+      url: "https://github.com/joaopedrolt",
+      icon_url: "",
+    },
+    fields: [],
+    color: 16777215,
+    type: "rich",
+    description: `Atualmente tocando **${currentTrack.title}** da playlist "**[${playlistTitle}](${playlistUrl})**".`,
+    title: "Trembo Bot",
+  };
 
   return {
+    embeds: [embed],
     components: [buttonRow],
+  };
+}
+
+export function getPlaylistAddedEmbed(playlist, addedBy) {
+  const embed = {
+    footer: {
+      text: `Tamanho (lenght): ${playlist.tracks.length}.\nAutor (author): ${playlist.author.name}.\nAdicionado por (added by): ${addedBy}.`,
+      icon_url: "",
+    },
+    image: {
+      url: playlist.thumbnail,
+    },
+    thumbnail: {
+      url: "",
+    },
+    author: {
+      name: "joaopedrolt",
+      url: "https://github.com/joaopedrolt",
+      icon_url: "",
+    },
+    fields: [],
+    color: 16777215,
+    type: "rich",
+    description: `A playlist "**[${playlist.title}](${playlist.url})**" foi adicionada à lista de reprodução (playlist has been added).`,
+    title: "Trembo Bot",
+  };
+
+  return {
+    embeds: [embed],
   };
 }

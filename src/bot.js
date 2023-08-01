@@ -1,4 +1,4 @@
-import { REST, SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { REST } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { Player } from "discord-player";
 

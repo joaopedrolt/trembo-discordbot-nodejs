@@ -1,14 +1,16 @@
-import { QueryType } from "discord-player";
+import { Playlist, QueryType } from "discord-player";
 import { ComponentType } from "discord.js";
-import { isYoutubePlaylist, isValidUrl } from "../../utils/urlTools.js";
 import {
-  getPlayEmbed,
-  disabledPlayButtonRow,
+  getPlayPlaylistEmbed,
+  getPlaySongEmbed,
+  getPlaylistAddedEmbed,
 } from "../../embeds/music/playEmbed.js";
 import QueueController from "../../controllers/queueController.js";
 import skipEmbed from "../../embeds/music/skipEmbed.js";
-import { stopButtonClickEmbed } from "../../embeds/music/stopEmbed.js";
-import CooldownController from "../../controllers/cooldownController.js";
+import stopEmbed from "../../embeds/music/stopEmbed.js";
+import { disabledPlayButtonRow } from "../../embeds/music/buttonRowEmbed.js";
+import isYoutubePlaylist from "../../utils/urlTools/isYoutubePlaylist.js";
+import isValidUrl from "../../utils/urlTools/isValidUrl.js";
 
 export default {
   name: "play",
@@ -77,6 +79,7 @@ export default {
       await queue.connect(interaction.member.voice.channel);
 
     let embed;
+    let playlist;
 
     const searchParameters = interaction.options.getSubcommand();
 
@@ -91,7 +94,7 @@ export default {
 
       if (isYoutubePlaylist(songUrl)) {
         return interaction.reply(
-          "Essa opção não suporta link de playlist, utilize /play playlist (this option does not support playlist links, use /play playlist instead)."
+          `Essa opção não suporta link de playlist, utilize "/play playlist" (this option does not support playlist links, use /play playlist instead).`
         );
       }
 
@@ -109,7 +112,7 @@ export default {
       const song = result.tracks[0];
       queue.addTrack(song);
 
-      embed = getPlayEmbed(
+      embed = getPlaySongEmbed(
         interaction.member.voice.channel.name,
         queue.isPlaying(),
         song,
@@ -119,10 +122,74 @@ export default {
 
     if (searchParameters == "search") {
       const songName = interaction.options.getString("songname");
+
+      const result = await client.player.search(songName, {
+        requestedBy: interaction.user,
+        searchEngine: QueryType.AUTO,
+      });
+
+      if (result.tracks.length === 0) {
+        return interaction.reply(
+          "Nenhum resultado encontrado! (no results found)."
+        );
+      }
+
+      const song = result.tracks[0];
+      queue.addTrack(song);
+
+      embed = getPlaySongEmbed(
+        interaction.member.voice.channel.name,
+        queue.isPlaying(),
+        song,
+        interaction.member.nickname
+      );
     }
 
     if (searchParameters == "playlist") {
       const playlistUrl = interaction.options.getString("playlisturl");
+
+      if (!isValidUrl(playlistUrl)) {
+        return interaction.reply(
+          "O parametro fornecido não é uma url (the provided parameter is not a url)."
+        );
+      }
+
+      if (!isYoutubePlaylist(playlistUrl)) {
+        return interaction.reply(
+          "Essa opção apenas suporta links de playlist do youtube. (this option only supports youtube playlist links)."
+        );
+      }
+
+      const result = await client.player.search(playlistUrl, {
+        requestedBy: interaction.user,
+        searchEngine: QueryType.YOUTUBE_PLAYLIST,
+      });
+
+      if (result.tracks.length === 0) {
+        return interaction.reply(
+          "Nenhum resultado encontrado nesse link! (no results found on this link!)."
+        );
+      }
+
+      playlist = result._data.playlist;
+
+      await queue.addTrack(playlist);
+
+      if (!queue.isPlaying()) {
+        QueueController.anyPlaylistOngoing = true;
+
+        embed = getPlayPlaylistEmbed(
+          playlist.title,
+          playlist.tracks.length,
+          playlist.url,
+          playlist.author.name,
+          1,
+          interaction.member.nickname,
+          playlist.tracks[0].raw
+        );
+      } else {
+        embed = getPlaylistAddedEmbed(playlist, interaction.member.nickname);
+      }
     }
 
     await interaction.deferReply();
@@ -131,15 +198,25 @@ export default {
       if (!queue.isPlaying()) {
         await queue.node.play();
 
-        CooldownController.applyCooldown();
-
-        QueueController.nextTrackIndex++;
         QueueController.setTrackMoveEventListener(queue, client);
       }
 
       const reply = await interaction.followUp(embed);
 
       QueueController.queueReply.push(reply);
+
+      if (playlist) {
+        QueueController.playlists.push({
+          id: QueueController.playlists.length + 1,
+          startIndex: QueueController.queueReply.length - 1,
+          length: playlist.tracks.length,
+          author: playlist.author.name,
+          title: playlist.title,
+          url: playlist.url,
+          reply,
+          addedBy: interaction.member.nickname,
+        });
+      }
 
       const collector = await reply.createMessageComponentCollector({
         componentType: ComponentType.Button,
@@ -148,13 +225,13 @@ export default {
       collector.on("collect", async (interaction) => {
         if (interaction.customId == "stop") {
           try {
+            QueueController.stopButtonPressed = true;
+
             queue.delete();
 
             reply.edit(disabledPlayButtonRow());
 
-            return interaction.reply(
-              stopButtonClickEmbed(interaction.member.nickname)
-            );
+            return interaction.reply(stopEmbed(interaction.member.nickname));
           } catch (error) {
             console.log(
               `\nStop button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`

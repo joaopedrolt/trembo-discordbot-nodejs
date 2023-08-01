@@ -1,4 +1,4 @@
-export function stopButtonClickEmbed(userNickname) {
+export default (userNickname) => {
   return {
     embeds: [
       {
@@ -13,9 +13,10 @@ export function stopButtonClickEmbed(userNickname) {
         },
         color: 16777215,
         type: "rich",
-        description: "Trembo bot parou a reprodução e saiu do canal de voz! (stopped music playback and left the voice channel).",
+        description:
+          "Trembo bot parou a reprodução e saiu do canal de voz! (stopped music playback and left the voice channel).",
         title: "Trembo Bot",
       },
     ],
   };
-}
+};
