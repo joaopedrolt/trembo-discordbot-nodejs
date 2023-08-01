@@ -238,11 +238,21 @@ export default {
         }
 
         if (interaction.customId == "skip") {
-          queue.node.skip();
+          try {
+            queue.node.skip();
 
-          return interaction.reply(
-            skipEmbed(queue.currentTrack.raw.title, interaction.member.nickname)
-          );
+            return interaction.reply(
+              skipEmbed(
+                queue.currentTrack.raw.title,
+                interaction.member.nickname
+              )
+            );
+          } catch (error) {
+            console.log(
+              `\nSkip button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
+            );
+            return;
+          }
         }
       });
 
