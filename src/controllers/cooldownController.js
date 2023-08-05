@@ -1,12 +1,23 @@
 export default class CooldownController {
-  static isOnCooldown = false;
+  static guildCooldown = [];
   static cooldownTime = 5000;
 
-  static applyCooldown() {
-    CooldownController.isOnCooldown = true;
+  static applyCooldown(targetGuildId) {
+    CooldownController.guildCooldown.push(targetGuildId);
 
     setTimeout(() => {
-      CooldownController.isOnCooldown = false;
+      CooldownController.guildCooldown =
+        CooldownController.guildCooldown.filter(
+          (guildId) => guildId !== targetGuildId
+        );
     }, CooldownController.cooldownTime);
+  }
+
+  static isOnCooldown(targetGuildId) {
+    const isGuildOnCooldown = CooldownController.guildCooldown.find(
+      (guildId) => guildId === targetGuildId
+    );
+
+    return isGuildOnCooldown ? true : false;
   }
 }

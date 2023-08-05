@@ -1,4 +1,4 @@
-export function queueEmptyEmbed() {
+export function getQueueEmptyEmbed() {
   return {
     embeds: [
       {
@@ -16,7 +16,7 @@ export function queueEmptyEmbed() {
   };
 }
 
-export function cooldownEmbed() {
+export function getCooldownEmbed() {
   return {
     embeds: [
       {

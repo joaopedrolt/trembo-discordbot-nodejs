@@ -1,145 +1,124 @@
 import {
-  disabledPlayButtonRow,
+  getDisabledPlayButtonRow,
   getPlayButtonRow,
 } from "../embeds/music/buttonRowEmbed.js";
-import { queueEmptyEmbed } from "../embeds/music/exceptionsEmbed.js";
+import { getQueueEmptyEmbed } from "../embeds/music/exceptionsEmbed.js";
 import { getPlayPlaylistEmbed } from "../embeds/music/playEmbed.js";
 
 export default class QueueController {
-  static queueReply = [];
-  static currentTrackIndex = 0;
-  static nextTrackIndex = QueueController.currentTrackIndex + 1;
+  constructor() {}
 
-  static currentTrack = {};
+  guildId = "";
 
-  static anyPlaylistOngoing = false;
-  static playlists = [];
-  static movingIntoPlaylist = false;
-  static playlistTrackCounter = 0;
+  queueReply = [];
+  currentTrackIndex = 0;
+  nextTrackIndex = this.currentTrackIndex + 1;
 
-  static stopCommandIssued = false;
+  currentTrack = {};
 
-  static moveActiveRow(lastTrack = false) {
-    const currentReply =
-      QueueController.queueReply[QueueController.currentTrackIndex];
+  anyPlaylistOngoing = false;
+  playlists = [];
+  movingIntoPlaylist = false;
+  playlistTrackCounter = 0;
 
-    currentReply.edit(disabledPlayButtonRow());
+  stopCommandIssued = false;
+
+  moveActiveRow(lastTrack = false) {
+    const currentReply = this.queueReply[this.currentTrackIndex];
+
+    currentReply.edit(getDisabledPlayButtonRow());
 
     if (lastTrack) return;
 
-    const nextTrackReply =
-      QueueController.queueReply[QueueController.nextTrackIndex];
+    const nextTrackReply = this.queueReply[this.nextTrackIndex];
 
     const embedUpdate = getPlayButtonRow(true);
 
     nextTrackReply.edit(embedUpdate);
 
-    if (
-      QueueController.movingIntoPlaylist &&
-      QueueController.anyPlaylistOngoing
-    ) {
-      QueueController.movingIntoPlaylist = false;
+    if (this.movingIntoPlaylist && this.anyPlaylistOngoing) {
+      this.movingIntoPlaylist = false;
     }
 
-    QueueController.currentTrackIndex++;
-    QueueController.nextTrackIndex = QueueController.currentTrackIndex + 1;
+    this.currentTrackIndex++;
+    this.nextTrackIndex = this.currentTrackIndex + 1;
   }
 
-  static setTrackMoveEventListener(queue) {
+  setTrackMoveEventListener(queue) {
     queue.dispatcher.on("finish", () => {
-      if (QueueController.playlists.length != 0) {
-        if (QueueController.anyPlaylistOngoing) {
-          QueueController.playlistTrackCounter++;
+      if (this.playlists.length != 0) {
+        if (this.anyPlaylistOngoing) {
+          this.playlistTrackCounter++;
 
-          if (
-            QueueController.playlists[0].length ==
-            QueueController.playlistTrackCounter
-          ) {
-            QueueController.anyPlaylistOngoing = false;
-            QueueController.playlists.shift();
-            QueueController.playlistTrackCounter = 0;
+          if (this.playlists[0].length == this.playlistTrackCounter) {
+            this.anyPlaylistOngoing = false;
+            this.playlists.shift();
+            this.playlistTrackCounter = 0;
 
-            if (QueueController.playlists.length != 0) {
-              if (QueueController.queueReply[QueueController.nextTrackIndex]) {
-                if (
-                  QueueController.nextTrackIndex ==
-                  QueueController.playlists[0].startIndex
-                ) {
-                  QueueController.movingIntoPlaylist = true;
-                  QueueController.anyPlaylistOngoing = true;
+            if (this.playlists.length != 0) {
+              if (this.queueReply[this.nextTrackIndex]) {
+                if (this.nextTrackIndex == this.playlists[0].startIndex) {
+                  this.movingIntoPlaylist = true;
+                  this.anyPlaylistOngoing = true;
                 }
               }
             }
           }
         } else {
-          if (QueueController.queueReply[QueueController.nextTrackIndex]) {
-            if (
-              QueueController.nextTrackIndex ==
-              QueueController.playlists[0].startIndex
-            ) {
-              QueueController.movingIntoPlaylist = true;
-              QueueController.anyPlaylistOngoing = true;
+          if (this.queueReply[this.nextTrackIndex]) {
+            if (this.nextTrackIndex == this.playlists[0].startIndex) {
+              this.movingIntoPlaylist = true;
+              this.anyPlaylistOngoing = true;
             }
           }
         }
       }
 
       if (
-        !(
-          !QueueController.queueReply[QueueController.nextTrackIndex] &&
-          !QueueController.anyPlaylistOngoing
-        )
+        !(!this.queueReply[this.nextTrackIndex] && !this.anyPlaylistOngoing)
       ) {
-        QueueController.currentTrack = queue.history.queue.__current.raw;
+        this.currentTrack = queue.history.queue.__current.raw;
       }
 
-      if (QueueController.anyPlaylistOngoing) {
-        QueueController.playlists[0].reply.edit(
+      if (this.anyPlaylistOngoing) {
+        this.playlists[0].reply.edit(
           getPlayPlaylistEmbed(
-            QueueController.playlists[0].title,
-            QueueController.playlists[0].length,
-            QueueController.playlists[0].url,
-            QueueController.playlists[0].author,
-            QueueController.playlistTrackCounter + 1,
-            QueueController.playlists[0].addedBy,
-            QueueController.currentTrack
+            this.playlists[0].title,
+            this.playlists[0].length,
+            this.playlists[0].url,
+            this.playlists[0].author,
+            this.playlistTrackCounter + 1,
+            this.playlists[0].addedBy,
+            this.currentTrack
           )
         );
       }
 
-      if (QueueController.anyPlaylistOngoing) {
-        if (
-          !(
-            !QueueController.movingIntoPlaylist &&
-            QueueController.anyPlaylistOngoing
-          )
-        ) {
-          QueueController.moveActiveRow();
+      if (this.anyPlaylistOngoing) {
+        if (!(!this.movingIntoPlaylist && this.anyPlaylistOngoing)) {
+          this.moveActiveRow();
         }
       } else {
-        if (QueueController.queueReply[QueueController.nextTrackIndex]) {
-          QueueController.moveActiveRow();
+        if (this.queueReply[this.nextTrackIndex]) {
+          this.moveActiveRow();
         } else {
-          QueueController.moveActiveRow(true);
+          this.moveActiveRow(true);
 
-          if (!QueueController.stopCommandIssued) {
-            QueueController.queueReply[QueueController.currentTrackIndex].reply(
-              queueEmptyEmbed()
-            );
+          if (!this.stopCommandIssued) {
+            this.queueReply[this.currentTrackIndex].reply(getQueueEmptyEmbed());
           } else {
-            QueueController.stopCommandIssued = false;
+            this.stopCommandIssued = false;
           }
 
-          QueueController.queueReply = [];
-          QueueController.currentTrackIndex = 0;
-          QueueController.nextTrackIndex =
-            QueueController.currentTrackIndex + 1;
-          QueueController.stopCommandIssued = false;
-          QueueController.anyPlaylistOngoing = false;
-          QueueController.playlists = [];
-          QueueController.movingIntoPlaylist = false;
-          QueueController.playlistTrackCounteQueueController;
-          QueueController.currentTrack = {};
+          this.queueReply = [];
+          this.currentTrackIndex = 0;
+          this.nextTrackIndex = this.currentTrackIndex + 1;
+          this.stopCommandIssued = false;
+          this.anyPlaylistOngoing = false;
+          this.playlists = [];
+          this.movingIntoPlaylist = false;
+          this.playlistTrackCountethis;
+          this.currentTrack = {};
         }
       }
     });

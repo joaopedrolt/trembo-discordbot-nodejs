@@ -1,5 +1,6 @@
 import stopEmbed from "../../embeds/music/stopEmbed.js";
-import QueueController from "../../controllers/queueController.js";
+import GuildQueueController from "../../controllers/guildQueueController.js";
+import checkMemberName from "../../utils/checkMemberName.js";
 
 export default {
   name: "stop",
@@ -15,12 +16,23 @@ export default {
       return;
     }
 
-    QueueController.stopCommandIssued = true;
+    const queueController = GuildQueueController.getGuildQueueController(
+      interaction.guildId
+    ).queueController;
+
+    queueController.stopCommandIssued = true;
 
     try {
       queue.delete();
 
-      return interaction.reply(stopEmbed(interaction.member.nickname));
+      return interaction.reply(
+        stopEmbed(
+          checkMemberName(
+            interaction.member.nickname,
+            interaction.member.user.username
+          )
+        )
+      );
     } catch (error) {
       console.log(
         `\nError when the /stop command was issued on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. Error: ${error}`

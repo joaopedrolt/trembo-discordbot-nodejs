@@ -1,4 +1,5 @@
 import skipEmbed from "../../embeds/music/skipEmbed.js";
+import checkMemberName from "../../utils/checkMemberName.js";
 
 export default {
   name: "skip",
@@ -17,7 +18,13 @@ export default {
     queue.node.skip();
 
     await interaction.reply(
-      skipEmbed(queue.currentTrack.raw.title, interaction.member.nickname)
+      skipEmbed(
+        queue.currentTrack.raw.title,
+        checkMemberName(
+          interaction.member.nickname,
+          interaction.member.user.username
+        )
+      )
     );
   },
 };

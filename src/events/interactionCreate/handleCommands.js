@@ -1,13 +1,13 @@
 import { PermissionFlagsBits } from "discord.js";
 import getLocalCommands from "../../utils/getLocalCommands.js";
 import CooldownController from "../../controllers/cooldownController.js";
-import { cooldownEmbed } from "../../embeds/music/exceptionsEmbed.js";
+import { getCooldownEmbed } from "../../embeds/music/exceptionsEmbed.js";
 
 export default async ({ client, args }) => {
   if (!args.isChatInputCommand()) return;
 
-  if (CooldownController.isOnCooldown){
-    return args.reply(cooldownEmbed());
+  if (CooldownController.isOnCooldown(args.guildId)) {
+    return args.reply(getCooldownEmbed());
   }
 
   const localCommands = await getLocalCommands();
@@ -29,7 +29,7 @@ export default async ({ client, args }) => {
     }
   }
 
-  CooldownController.applyCooldown();
+  CooldownController.applyCooldown(args.guildId);
 
   await commandObject.callback(client, args);
 };

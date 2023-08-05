@@ -5,11 +5,13 @@ import {
   getPlaySongEmbed,
   getPlaylistAddedEmbed,
 } from "../../embeds/music/playEmbed.js";
-import QueueController from "../../controllers/queueController.js";
 import skipEmbed from "../../embeds/music/skipEmbed.js";
 import stopEmbed from "../../embeds/music/stopEmbed.js";
 import isYoutubePlaylist from "../../utils/urlTools/isYoutubePlaylist.js";
 import isValidUrl from "../../utils/urlTools/isValidUrl.js";
+import GuildQueueController from "../../controllers/guildQueueController.js";
+import checkMemberName from "../../utils/checkMemberName.js";
+import { getPausedButtonRow, getPlayButtonRow } from "../../embeds/music/buttonRowEmbed.js";
 
 export default {
   name: "play",
@@ -61,6 +63,11 @@ export default {
 
   callback: async (client, interaction) => {
     const channel = interaction.member.voice.channel;
+
+    const queueController = GuildQueueController.getGuildQueueController(
+      interaction.guildId
+    ).queueController;
+
     if (!channel)
       return interaction.reply(
         "Você precisa estar em um canal de voz para reproduzir uma música (you need to be in a voice channel to play a song)."
@@ -115,7 +122,10 @@ export default {
         interaction.member.voice.channel.name,
         queue.isPlaying(),
         song,
-        interaction.member.nickname
+        checkMemberName(
+          interaction.member.nickname,
+          interaction.member.user.username
+        )
       );
     }
 
@@ -140,7 +150,10 @@ export default {
         interaction.member.voice.channel.name,
         queue.isPlaying(),
         song,
-        interaction.member.nickname
+        checkMemberName(
+          interaction.member.nickname,
+          interaction.member.user.username
+        )
       );
     }
 
@@ -175,7 +188,7 @@ export default {
       await queue.addTrack(playlist);
 
       if (!queue.isPlaying()) {
-        QueueController.anyPlaylistOngoing = true;
+        queueController.anyPlaylistOngoing = true;
 
         embed = getPlayPlaylistEmbed(
           playlist.title,
@@ -183,11 +196,20 @@ export default {
           playlist.url,
           playlist.author.name,
           1,
-          interaction.member.nickname,
+          checkMemberName(
+            interaction.member.nickname,
+            interaction.member.user.username
+          ),
           playlist.tracks[0].raw
         );
       } else {
-        embed = getPlaylistAddedEmbed(playlist, interaction.member.nickname);
+        embed = getPlaylistAddedEmbed(
+          playlist,
+          checkMemberName(
+            interaction.member.nickname,
+            interaction.member.user.username
+          )
+        );
       }
     }
 
@@ -197,23 +219,26 @@ export default {
       if (!queue.isPlaying()) {
         await queue.node.play();
 
-        QueueController.setTrackMoveEventListener(queue, client);
+        queueController.setTrackMoveEventListener(queue, client);
       }
 
       const reply = await interaction.followUp(embed);
 
-      QueueController.queueReply.push(reply);
+      queueController.queueReply.push(reply);
 
       if (playlist) {
-        QueueController.playlists.push({
-          id: QueueController.playlists.length + 1,
-          startIndex: QueueController.queueReply.length - 1,
+        queueController.playlists.push({
+          id: queueController.playlists.length + 1,
+          startIndex: queueController.queueReply.length - 1,
           length: playlist.tracks.length,
           author: playlist.author.name,
           title: playlist.title,
           url: playlist.url,
           reply,
-          addedBy: interaction.member.nickname,
+          addedBy: checkMemberName(
+            interaction.member.nickname,
+            interaction.member.user.username
+          ),
         });
       }
 
@@ -222,13 +247,27 @@ export default {
       });
 
       collector.on("collect", async (interaction) => {
+        if (!queue) {
+          await interaction.reply(
+            "Não há músicas na fila! (there are no songs in the queue)."
+          );
+          return;
+        }
+
         if (interaction.customId == "stop") {
           try {
-            QueueController.stopCommandIssued = true;
+            queueController.stopCommandIssued = true;
 
             queue.delete();
 
-            return interaction.reply(stopEmbed(interaction.member.nickname));
+            return interaction.reply(
+              stopEmbed(
+                checkMemberName(
+                  interaction.member.nickname,
+                  interaction.member.user.username
+                )
+              )
+            );
           } catch (error) {
             console.log(
               `\nStop button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
@@ -244,12 +283,59 @@ export default {
             return interaction.reply(
               skipEmbed(
                 queue.currentTrack.raw.title,
-                interaction.member.nickname
+                checkMemberName(
+                  interaction.member.nickname,
+                  interaction.member.user.username
+                )
               )
             );
           } catch (error) {
             console.log(
               `\nSkip button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
+            );
+            return;
+          }
+        }
+
+        if (interaction.customId == "pause") {
+          try {
+            if (queue.node.isPlaying()) {
+              queue.node.pause();
+
+              const currentReply =
+                queueController.queueReply[queueController.currentTrackIndex];
+
+              currentReply.edit(getPausedButtonRow());
+
+              return await interaction.reply("Pausado");
+            } else {
+              return await interaction.reply("Bot ja pausado");
+            }
+          } catch (error) {
+            console.log(
+              `\nPause button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. error: ${error}`
+            );
+            return;
+          }
+        }
+
+        if (interaction.customId == "resume") {
+          try {
+            if (queue.node.isPaused()) {
+              queue.node.resume();
+
+              const currentReply =
+                queueController.queueReply[queueController.currentTrackIndex];
+
+              currentReply.edit(getPlayButtonRow(true));
+
+              return await interaction.reply("Resumido");
+            } else {
+              return await interaction.reply("Musica ja esta tocando");
+            }
+          } catch (error) {
+            console.log(
+              `\nResume button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
             );
             return;
           }
