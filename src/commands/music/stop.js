@@ -7,12 +7,22 @@ export default {
   description: "Encerra a fila de reprodução (stops current queue)",
 
   callback: async (client, interaction) => {
+    const channel = interaction.member.voice.channel;
+
+    if (!channel)
+    return interaction.reply({
+      content:
+        "Você precisa estar em um canal de voz para reproduzir uma música (you need to be in a voice channel to play a song).",
+      ephemeral: true,
+    });
+    
     const queue = client.player.nodes.get(interaction.guild);
 
     if (!queue) {
-      await interaction.reply(
-        "Não há músicas na fila! (there are no songs in the queue)."
-      );
+      await interaction.reply({
+        content: "Não há músicas na fila! (there are no songs in the queue).",
+        ephemeral: true,
+      });
       return;
     }
 

@@ -13,11 +13,17 @@ export default ({ client, args }) => {
 
     if (client.voice.adapters.size > 0) {
       console.log(
-        `\nTrembo Bot started playing on server: "${args.guild.name}" - Id: ${args.guild.id}. On ${formattedDateTime}.`
+        `Trembo Bot started playing on server: "${args.guild.name}" - Id: ${args.guild.id}. On ${formattedDateTime}.`
       );
     } else {
+      const queue = client.player.nodes.get(args.guild);
+
+      if (queue) {
+        queue.delete();
+      }
+
       console.log(
-        `\nTrembo Bot left voice channel on server: "${args.guild.name}" / Id: ${args.guild.id}. On ${formattedDateTime}.`
+        `Trembo Bot left voice channel on server: "${args.guild.name}" / Id: ${args.guild.id}. On ${formattedDateTime}.`
       );
     }
   }

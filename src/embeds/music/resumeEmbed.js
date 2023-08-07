@@ -1,9 +1,9 @@
-export default (userNickname) => {
+export default (songTitle, userNickname) => {
   return {
     embeds: [
       {
         footer: {
-          text: `Parado por (stopped by): ${userNickname}.`,
+          text: `Resumido por (resumed by): ${userNickname}.`,
           icon_url: "",
         },
         author: {
@@ -13,8 +13,7 @@ export default (userNickname) => {
         },
         color: 16777215,
         type: "rich",
-        description:
-          "Trembo bot parou a reprodução e saiu do canal de voz! (stopped song playback and left the voice channel).",
+        description: `A música **${songTitle}** foi resumida! (the song has been resumed).`,
         title: "Trembo Bot",
       },
     ],

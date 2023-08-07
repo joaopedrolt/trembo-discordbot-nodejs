@@ -11,7 +11,15 @@ import isYoutubePlaylist from "../../utils/urlTools/isYoutubePlaylist.js";
 import isValidUrl from "../../utils/urlTools/isValidUrl.js";
 import GuildQueueController from "../../controllers/guildQueueController.js";
 import checkMemberName from "../../utils/checkMemberName.js";
-import { getPausedButtonRow, getPlayButtonRow } from "../../embeds/music/buttonRowEmbed.js";
+import {
+  getPausedButtonRow,
+  getPlayButtonRow,
+} from "../../embeds/music/buttonRowEmbed.js";
+import pauseEmbed from "../../embeds/music/pauseEmbed.js";
+import resumeEmbed from "../../embeds/music/resumeEmbed.js";
+import isUserConnectedToBotChannel from "../../utils/isUserConnectedToBotChannel.js";
+import CooldownController from "../../controllers/cooldownController.js";
+import { getCooldownEmbed } from "../../embeds/music/exceptionsEmbed.js";
 
 export default {
   name: "play",
@@ -64,14 +72,20 @@ export default {
   callback: async (client, interaction) => {
     const channel = interaction.member.voice.channel;
 
-    const queueController = GuildQueueController.getGuildQueueController(
-      interaction.guildId
-    ).queueController;
-
     if (!channel)
-      return interaction.reply(
-        "Você precisa estar em um canal de voz para reproduzir uma música (you need to be in a voice channel to play a song)."
-      );
+      return interaction.reply({
+        content:
+          "Você precisa estar em um canal de voz para reproduzir uma música (you need to be in a voice channel to play a song).",
+        ephemeral: true,
+      });
+
+    if (!channel.permissionsFor(client.user).has("ViewChannel")) {
+      return await interaction.reply({
+        content:
+          "O Bot não tem permissão para tocar nesse canal (Bot is not allowed to play on this channel)!",
+        ephemeral: true,
+      });
+    }
 
     let queue;
 
@@ -79,7 +93,20 @@ export default {
       queue = client.player.nodes.create(interaction.guild);
     } else {
       queue = client.player.nodes.get(interaction.guild);
+
+      if (!isUserConnectedToBotChannel(client.user.id, channel)) {
+        return await interaction.reply({
+          content:
+            "Você precisa estar no mesmo canal do bot (You must be on the same channel as the bot)!",
+          ephemeral: true,
+        });
+      }
     }
+
+    const queueController = GuildQueueController.getGuildQueueController(
+      interaction.guildId
+    ).queueController;
+
 
     if (!queue.connection)
       await queue.connect(interaction.member.voice.channel);
@@ -93,15 +120,18 @@ export default {
       const songUrl = interaction.options.getString("songurl");
 
       if (!isValidUrl(songUrl)) {
-        return interaction.reply(
-          "O parametro fornecido não é uma url (the provided parameter is not a url)."
-        );
+        return interaction.reply({
+          content:
+            "O parametro fornecido não é uma url (the provided parameter is not a url).",
+          ephemeral: true,
+        });
       }
 
       if (isYoutubePlaylist(songUrl)) {
-        return interaction.reply(
-          `Essa opção não suporta link de playlist, utilize "/play playlist" (this option does not support playlist links, use /play playlist instead).`
-        );
+        return interaction.reply({
+          content: `Essa opção não suporta link de playlist, utilize "/play playlist" (this option does not support playlist links, use /play playlist instead).`,
+          ephemeral: true,
+        });
       }
 
       const result = await client.player.search(songUrl, {
@@ -110,9 +140,11 @@ export default {
       });
 
       if (result.tracks.length === 0) {
-        return interaction.reply(
-          "Nenhum resultado encontrado nesse link! (no results found on this link!)."
-        );
+        return interaction.reply({
+          content:
+            "Nenhum resultado encontrado nesse link! (no results found on this link!).",
+          ephemeral: true,
+        });
       }
 
       const song = result.tracks[0];
@@ -138,9 +170,10 @@ export default {
       });
 
       if (result.tracks.length === 0) {
-        return interaction.reply(
-          "Nenhum resultado encontrado! (no results found)."
-        );
+        return interaction.reply({
+          content: "Nenhum resultado encontrado! (no results found).",
+          ephemeral: true,
+        });
       }
 
       const song = result.tracks[0];
@@ -161,15 +194,19 @@ export default {
       const playlistUrl = interaction.options.getString("playlisturl");
 
       if (!isValidUrl(playlistUrl)) {
-        return interaction.reply(
-          "O parametro fornecido não é uma url (the provided parameter is not a url)."
-        );
+        return interaction.reply({
+          content:
+            "O parametro fornecido não é uma url (the provided parameter is not a url).",
+          ephemeral: true,
+        });
       }
 
       if (!isYoutubePlaylist(playlistUrl)) {
-        return interaction.reply(
-          "Essa opção apenas suporta links de playlist do youtube. (this option only supports youtube playlist links)."
-        );
+        return interaction.reply({
+          content:
+            "Essa opção apenas suporta links de playlist do youtube. (this option only supports youtube playlist links).",
+          ephemeral: true,
+        });
       }
 
       const result = await client.player.search(playlistUrl, {
@@ -178,9 +215,11 @@ export default {
       });
 
       if (result.tracks.length === 0) {
-        return interaction.reply(
-          "Nenhum resultado encontrado nesse link! (no results found on this link!)."
-        );
+        return interaction.reply({
+          content:
+            "Nenhum resultado encontrado nesse link! (no results found on this link!).",
+          ephemeral: true,
+        });
       }
 
       playlist = result._data.playlist;
@@ -247,12 +286,40 @@ export default {
       });
 
       collector.on("collect", async (interaction) => {
-        if (!queue) {
-          await interaction.reply(
-            "Não há músicas na fila! (there are no songs in the queue)."
-          );
-          return;
+        if (CooldownController.isOnCooldown(interaction.guildId)) {
+          return interaction.reply(getCooldownEmbed());
         }
+
+        if (!queue) {
+          return await interaction.reply({
+            content:
+              "Não há músicas na fila! (there are no songs in the queue).",
+            ephemeral: true,
+          });
+        }
+
+        if (interaction.member.voice.channel) {
+          if (
+            !isUserConnectedToBotChannel(
+              client.user.id,
+              interaction.member.voice.channel
+            )
+          ) {
+            return await interaction.reply({
+              content:
+                "Você precisa estar no mesmo canal do bot (You must be on the same channel as the bot)!",
+              ephemeral: true,
+            });
+          }
+        } else {
+          return await interaction.reply({
+            content:
+              "Você precisa estar no servidor para interagir com o bot (You need to be on the server to interact with the bot)!",
+            ephemeral: true,
+          });
+        }
+
+        CooldownController.applyCooldown(interaction.guildId);
 
         if (interaction.customId == "stop") {
           try {
@@ -270,7 +337,7 @@ export default {
             );
           } catch (error) {
             console.log(
-              `\nStop button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
+              `\nError while stop button was pressed on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. Error: ${error}`
             );
             return;
           }
@@ -291,7 +358,7 @@ export default {
             );
           } catch (error) {
             console.log(
-              `\nSkip button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
+              `\nError while skip button was pressed on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. Error: ${error}`
             );
             return;
           }
@@ -307,13 +374,24 @@ export default {
 
               currentReply.edit(getPausedButtonRow());
 
-              return await interaction.reply("Pausado");
+              return await interaction.reply(
+                pauseEmbed(
+                  queue.currentTrack.raw.title,
+                  checkMemberName(
+                    interaction.member.nickname,
+                    interaction.member.user.username
+                  )
+                )
+              );
             } else {
-              return await interaction.reply("Bot ja pausado");
+              return await interaction.reply({
+                content: "Bot já pausado (Bot is already paused)!",
+                ephemeral: true,
+              });
             }
           } catch (error) {
             console.log(
-              `\nPause button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. error: ${error}`
+              `\nError while pause button was pressed on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. Error: ${error}`
             );
             return;
           }
@@ -329,13 +407,24 @@ export default {
 
               currentReply.edit(getPlayButtonRow(true));
 
-              return await interaction.reply("Resumido");
+              return await interaction.reply(
+                resumeEmbed(
+                  queue.currentTrack.raw.title,
+                  checkMemberName(
+                    interaction.member.nickname,
+                    interaction.member.user.username
+                  )
+                )
+              );
             } else {
-              return await interaction.reply("Musica ja esta tocando");
+              return await interaction.reply({
+                content: "Bot já está tocando (Bot is already playing)!",
+                ephemeral: true,
+              });
             }
           } catch (error) {
             console.log(
-              `\nResume button was pressed while there was no queue available on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}.`
+              `\nError while resume button was pressed on the server: ${interaction.guild.name} / Id: ${interaction.guild.id}. Error: ${error}`
             );
             return;
           }
@@ -346,9 +435,10 @@ export default {
     } catch (error) {
       console.log(error);
 
-      return interaction.followUp(
-        `Ocorreu um erro, tente novamente. Se persistir, reporte ao desenvolvedor! (There was an error, please try again. If it persists, report to the developer!).`
-      );
+      return interaction.reply({
+        content: `Ocorreu um erro, tente novamente. Se persistir, reporte ao desenvolvedor! (There was an error, please try again. If it persists, report to the developer!).`,
+        ephemeral: true,
+      });
     }
   },
 };

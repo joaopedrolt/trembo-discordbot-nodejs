@@ -1,6 +1,6 @@
 export default class CooldownController {
   static guildCooldown = [];
-  static cooldownTime = 5000;
+  static cooldownTime = 4000;
 
   static applyCooldown(targetGuildId) {
     CooldownController.guildCooldown.push(targetGuildId);

@@ -13,7 +13,7 @@ export default (songTitle, userNickname) => {
         },
         color: 16777215,
         type: "rich",
-        description: `A música **${songTitle}** foi pulada! (the music was skipped).`,
+        description: `A música **${songTitle}** foi pulada! (the song has been skipped).`,
         title: "Trembo Bot",
       },
     ],

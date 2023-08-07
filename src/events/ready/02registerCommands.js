@@ -36,7 +36,7 @@ export default async ({ client, rest }) => {
 
     if (!foundErrors && guilds.length !== 0) {
       console.log(
-        "\nAll commands have been added and updated on all servers successfully! It may take a while to be able to use."
+        "\nAll commands have been added and updated on all servers successfully! It may take a while to be able to use.\n"
       );
     } else if (guilds.length === 0) {
       console.log("Bot is not on any server...");
