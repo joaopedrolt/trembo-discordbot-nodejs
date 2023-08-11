@@ -23,7 +23,7 @@ export function getPlaySongEmbed(channel, isPlaying, song, addedBy) {
     color: 16777215,
     type: "rich",
     description: `**[${song.title}](${song.url})** foi adicionado à lista de reprodução (has been added to the playlist).`,
-    title: "Trembo Bot",
+    title: "Trembo",
   };
 
   return !isPlaying
@@ -67,7 +67,7 @@ export function getPlayPlaylistEmbed(
     color: 16777215,
     type: "rich",
     description: `Atualmente tocando **${currentTrack.title}** da playlist "**[${playlistTitle}](${playlistUrl})**".`,
-    title: "Trembo Bot",
+    title: "Trembo",
   };
 
   return {
@@ -97,7 +97,7 @@ export function getPlaylistAddedEmbed(playlist, addedBy) {
     color: 16777215,
     type: "rich",
     description: `A playlist "**[${playlist.title}](${playlist.url})**" foi adicionada à lista de reprodução (playlist has been added).`,
-    title: "Trembo Bot",
+    title: "Trembo",
   };
 
   return {

@@ -15,7 +15,7 @@ export default (userNickname) => {
         type: "rich",
         description:
           "Trembo bot parou a reprodução e saiu do canal de voz! (stopped song playback and left the voice channel).",
-        title: "Trembo Bot",
+        title: "Trembo",
       },
     ],
   };

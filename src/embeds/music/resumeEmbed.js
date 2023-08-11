@@ -14,7 +14,7 @@ export default (songTitle, userNickname) => {
         color: 16777215,
         type: "rich",
         description: `A música **${songTitle}** foi resumida! (the song has been resumed).`,
-        title: "Trembo Bot",
+        title: "Trembo",
       },
     ],
   };

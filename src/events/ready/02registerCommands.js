@@ -30,7 +30,6 @@ export default async ({ client, rest }) => {
         console.log(
           `An error occurred while registering/updating commands on server: ${guild.name} / Id: ${guild.id}.\nError: ${error} \nPLEASE FIX THIS BEFORE CONTINUE!`
         );
-        process.exit();
       }
     }
 
