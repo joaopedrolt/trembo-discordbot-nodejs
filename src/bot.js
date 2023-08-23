@@ -18,7 +18,7 @@ client.player = new Player(client, {
   },
 });
 
-await client.player.extractors.loadDefault();
+client.player.extractors.loadDefault();
 
 eventHandler(client, rest);
 
