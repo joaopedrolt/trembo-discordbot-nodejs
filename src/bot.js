@@ -2,7 +2,7 @@ import { REST } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
 import { Player } from "discord-player";
 
-import eventHandler from "./handlers/eventHandler.js"; //temp
+import eventHandler from "./handlers/eventHandler.js";
 import config from "./config.js";
 
 const token = config.token;

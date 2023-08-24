@@ -16,6 +16,8 @@
     "discord.js": "^14.11.0",
     "dotenv": "^16.3.1",
     "ffmpeg-static": "^5.1.0",
+    "node-opus": "^0.3.3",
+    "opusscript": "^0.0.8",
     "play-dl": "^1.9.6",
     "yt-stream": "^1.4.8"
   },
