@@ -26,7 +26,7 @@ Bot de música para Discord com suporte a músicas do YouTube.
 
 ## Funcionalidades
 
-* Bot de música para Discord com suporte a músicas do YouTube.
+* Reproduzir vídeos, lives, músicas e playlists do YouTube em uma chamada de voz dentro de um servidor do Discord.
 
 ## Como Executar o Projeto
 
