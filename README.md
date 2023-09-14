@@ -63,6 +63,6 @@ Este projeto foi criado por mim, João Pedro Lima Teixeira, como uma iniciativa 
 
 ## Imagens do Projeto
 
-<div><img src="http://drive.google.com/uc?export=view&id=1w2RoarqaIuvTxtcBMmb_h4l8ecGlGHYD" width=600 alt="Login" /></div>
-<div><img src="http://drive.google.com/uc?export=view&id=13E-3pi79DVQLAAqtjKFJcgGYTH0hLd0_" width=600 alt="Main" /></div>
-<div><img src="http://drive.google.com/uc?export=view&id=1MTCX2HeLGcimkePnfVa_DIJ3qflKTlo_" width=600 alt="Chat" /></div>
+<div><img src="http://drive.google.com/uc?export=view&id=1TUWR-0Yf2TxBo_JobmEKcV9AZyCoARUe" width=600 alt="Login" /></div>
+<div><img src="http://drive.google.com/uc?export=view&id=1Wq0b00kXBnBvqcaFwPL-rqXHbw-qzH7i" width=600 alt="Main" /></div> 
+<div><img src="http://drive.google.com/uc?export=view&id=1rFcn9brllvaY5Uw7Ryk9R0gcCMracyAb" width=600 alt="Chat" /></div>
