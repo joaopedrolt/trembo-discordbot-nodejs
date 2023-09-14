@@ -36,19 +36,17 @@ Bot de música para Discord com suporte a músicas do YouTube.
 #### Instalação Local
 
 1. Clonar ou fazer download do projeto.
-2. Instale as dependências do projeto
+2. Instale as dependências do projeto.
 ```bash
 npm install
 ```
-3. Crie um arquivo .env seguindo o padrão do arquivo .env.copy para criar as variaveis de ambiente do seu bot.
+3. Crie um arquivo .env seguindo o padrão do arquivo .env copy para criar as variaveis de ambiente do seu bot.
 
 ```bash
-export default {
-    TOKENID:
-    CLIENT:ID
-};
+    TOKEN=
+    CLIENT_ID=
 ```
-3. Execute o arquivo de entrada bot.js;
+3. Execute o arquivo de entrada (main);
 ```bash
     node bot.js
 ```
