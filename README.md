@@ -3,8 +3,8 @@
 ## Índice
 
 * [Descrição](#descrição)
-* [Tecnologias Utilizadas](#tecnologias-utilizadas)
-* [Funcionalidades](#funcionalidades)
+* [Linguagens](#linguagens)
+* [Dependências](#dependencias)
 * [Como Executar o Projeto](#como-executar-o-projeto)
    * [Instalação Local](#instalação-local)
 * [Autoria](#autoria)
