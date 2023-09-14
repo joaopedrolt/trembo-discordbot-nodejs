@@ -40,22 +40,17 @@ Bot de música para Discord com suporte a músicas do YouTube.
 ```bash
 npm install
 ```
-3. Crie um projeto no Firebase Console e habilite o Firebase Authentication, Firebase Database, Firebase Store.
-4. Crie um App no Facebook Apps, habilite o produto Facebook Login e o configure como o Firebase Auth.
-5. Copie as credenciais do Firebase e crie um arquivo chamado FirebaseConfig.js na pasta ./src seguindo os padrões do arquivo firebaseConfig.copy.js como exemplo. Adicione as seguintes credenciais no arquivo FirebaseConfig.js:
+3. Crie um arquivo .env seguindo o padrão do arquivo .env.copy para criar as variaveis de ambiente do seu bot.
+
 ```bash
 export default {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    TOKENID:
+    CLIENT:ID
 };
 ```
-6. Inicie o projeto em modo desenvolvimento:
+3. Execute o arquivo de entrada bot.js;
 ```bash
-    npm run dev
+    node bot.js
 ```
 ## Autoria
 
