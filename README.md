@@ -4,7 +4,7 @@
 
 * [Descrição](#descrição)
 * [Linguagens](#linguagens)
-* [Dependências](#dependencias)
+* [Dependências](#dependências)
 * [Como Executar o Projeto](#como-executar-o-projeto)
    * [Instalação Local](#instalação-local)
 * [Autoria](#autoria)
