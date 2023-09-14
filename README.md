@@ -38,14 +38,13 @@ Bot de música para Discord com suporte a músicas do YouTube.
 1. Clonar ou fazer download do projeto.
 2. Instale as dependências do projeto:
 
-3. Faça a instalação do FFmpeg no seu sistema operacional seguindo os padrões do site <h4><a href="https://ffmpeg.org/download.html">Clique aqui</a></h4>
-   
 ```bash
     npm install
 ```
 
+3. Faça a instalação do FFmpeg no seu sistema operacional seguindo os padrões do site: <a href="https://ffmpeg.org/download.html">Clique aqui</a>
 4. Clonar ou fazer download do projeto.
-5. Crie um arquivo .env seguindo o padrão do arquivo .env copy para criar as variáveis de ambiente do seu bot.
+5. Crie um arquivo .env seguindo o padrão do arquivo .env copy para criar as variáveis de ambiente do seu bot:
 
 ```bash
     TOKEN=
