@@ -1,4 +1,4 @@
-import { QueryType } from "discord-player";
+import { QueryType, useMainPlayer } from "discord-player";
 import { ComponentType } from "discord.js";
 import {
   getPlayPlaylistEmbed,
@@ -107,7 +107,6 @@ export default {
       interaction.guildId
     ).queueController;
 
-
     if (!queue.connection)
       await queue.connect(interaction.member.voice.channel);
 
@@ -115,11 +114,12 @@ export default {
     let playlist;
 
     const searchParameters = interaction.options.getSubcommand();
+    let userSongInput;
 
     if (searchParameters == "url") {
-      const songUrl = interaction.options.getString("songurl");
+      userSongInput = interaction.options.getString("songurl");
 
-      if (!isValidUrl(songUrl)) {
+      if (!isValidUrl(userSongInput)) {
         return interaction.reply({
           content:
             "O parametro fornecido não é uma url (the provided parameter is not a url).",
@@ -127,19 +127,19 @@ export default {
         });
       }
 
-      if (isYoutubePlaylist(songUrl)) {
+      if (isYoutubePlaylist(userSongInput)) {
         return interaction.reply({
           content: `Essa opção não suporta link de playlist, utilize "/play playlist" (this option does not support playlist links, use /play playlist instead).`,
           ephemeral: true,
         });
       }
 
-      const result = await client.player.search(songUrl, {
+      const result = await client.player.search(userSongInput, {
         requestedBy: interaction.user,
         searchEngine: QueryType.YOUTUBE_VIDEO,
       });
 
-      if (result.tracks.length === 0) {
+      if (!result._data.tracks || result._data.tracks.length === 0) {
         return interaction.reply({
           content:
             "Nenhum resultado encontrado nesse link! (no results found on this link!).",
@@ -147,8 +147,8 @@ export default {
         });
       }
 
-      const song = result.tracks[0];
-      queue.addTrack(song);
+      const song = result._data.tracks[0];
+      userSongInput = song.url; // Url mais correta
 
       embed = getPlaySongEmbed(
         interaction.member.voice.channel.name,
@@ -162,22 +162,23 @@ export default {
     }
 
     if (searchParameters == "search") {
-      const songName = interaction.options.getString("songname");
+      userSongInput = interaction.options.getString("songname");
 
-      const result = await client.player.search(songName, {
+      const result = await client.player.search(userSongInput, {
         requestedBy: interaction.user,
         searchEngine: QueryType.AUTO,
       });
 
-      if (result.tracks.length === 0) {
+      if (!result._data.tracks || result._data.tracks.length === 0) {
         return interaction.reply({
           content: "Nenhum resultado encontrado! (no results found).",
           ephemeral: true,
         });
       }
 
-      const song = result.tracks[0];
-      queue.addTrack(song);
+      const song = result._data.tracks[0];
+      userSongInput = song.url; // Url mais correta
+      //queue.addTrack(song);
 
       embed = getPlaySongEmbed(
         interaction.member.voice.channel.name,
@@ -190,10 +191,10 @@ export default {
       );
     }
 
-    if (searchParameters == "playlist") {
-      const playlistUrl = interaction.options.getString("playlisturl");
+    if (searchParameters == "playlist") { // Arrumar o Playlist
+      userSongInput = interaction.options.getString("playlisturl");
 
-      if (!isValidUrl(playlistUrl)) {
+      if (!isValidUrl(userSongInput)) {
         return interaction.reply({
           content:
             "O parametro fornecido não é uma url (the provided parameter is not a url).",
@@ -201,7 +202,7 @@ export default {
         });
       }
 
-      if (!isYoutubePlaylist(playlistUrl)) {
+      if (!isYoutubePlaylist(userSongInput)) {
         return interaction.reply({
           content:
             "Essa opção apenas suporta links de playlist do youtube. (this option only supports youtube playlist links).",
@@ -209,12 +210,12 @@ export default {
         });
       }
 
-      const result = await client.player.search(playlistUrl, {
+      const result = await client.player.search(userSongInput, {
         requestedBy: interaction.user,
         searchEngine: QueryType.YOUTUBE_PLAYLIST,
       });
 
-      if (result.tracks.length === 0) {
+      if (!result._data.tracks || result._data.tracks.length === 0) {
         return interaction.reply({
           content:
             "Nenhum resultado encontrado nesse link! (no results found on this link!).",
@@ -223,23 +224,23 @@ export default {
       }
 
       playlist = result._data.playlist;
-
-      await queue.addTrack(playlist);
+      // await queue.addTrack(playlist);
 
       if (!queue.isPlaying()) {
         queueController.anyPlaylistOngoing = true;
+        queueController.playlistTrackCounter = 1;
 
         embed = getPlayPlaylistEmbed(
           playlist.title,
           playlist.tracks.length,
           playlist.url,
           playlist.author.name,
-          1,
+          queueController.playlistTrackCounter,
           checkMemberName(
             interaction.member.nickname,
             interaction.member.user.username
           ),
-          playlist.tracks[0].raw
+          playlist.tracks[0]
         );
       } else {
         embed = getPlaylistAddedEmbed(
@@ -255,14 +256,22 @@ export default {
     await interaction.deferReply();
 
     try {
-      if (!queue.isPlaying()) {
-        await queue.node.play();
+      const { track } = await client.player.play(channel, userSongInput, {
+        nodeOptions: {
+          metadata: {
+            channel: interaction.channel
+          },
+          volume: 100,
+          leaveOnEmpty: true,
+          leaveOnEmptyCooldown: 60000,
+          leaveOnEnd: true,
+          leaveOnEndCooldown: 60000,
+        },
+      })
 
-        queueController.setTrackMoveEventListener(queue, client);
-      }
+      queueController.setTrackMoveEventListener(queue, client);
 
       const reply = await interaction.followUp(embed);
-
       queueController.queueReply.push(reply);
 
       if (playlist) {
@@ -349,7 +358,7 @@ export default {
 
             return interaction.reply(
               skipEmbed(
-                queue.currentTrack.raw.title,
+                queue.currentTrack.title,
                 checkMemberName(
                   interaction.member.nickname,
                   interaction.member.user.username
@@ -376,7 +385,7 @@ export default {
 
               return await interaction.reply(
                 pauseEmbed(
-                  queue.currentTrack.raw.title,
+                  queue.currentTrack.title,
                   checkMemberName(
                     interaction.member.nickname,
                     interaction.member.user.username
@@ -409,7 +418,7 @@ export default {
 
               return await interaction.reply(
                 resumeEmbed(
-                  queue.currentTrack.raw.title,
+                  queue.currentTrack.title,
                   checkMemberName(
                     interaction.member.nickname,
                     interaction.member.user.username

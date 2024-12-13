@@ -1,5 +1,6 @@
 import { REST } from "discord.js";
 import { Client, GatewayIntentBits } from "discord.js";
+import { YoutubeiExtractor } from "discord-player-youtubei"
 import { Player } from "discord-player";
 
 import eventHandler from "./handlers/eventHandler.js";
@@ -18,7 +19,11 @@ client.player = new Player(client, {
   },
 });
 
-client.player.extractors.loadDefault();
+//client.player.extractors.loadDefault();
+client.player.extractors.register(YoutubeiExtractor, {});
+
+// client.player = new Player();
+// client.player.extractors.register(YoutubeiExtractor, {});
 
 eventHandler(client, rest);
 

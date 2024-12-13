@@ -29,7 +29,7 @@ export default {
 
     await interaction.reply(
       skipEmbed(
-        queue.currentTrack.raw.title,
+        queue.currentTrack.title,
         checkMemberName(
           interaction.member.nickname,
           interaction.member.user.username

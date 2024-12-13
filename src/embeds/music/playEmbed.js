@@ -47,13 +47,15 @@ export function getPlayPlaylistEmbed(
 ) {
   const buttonRow = getPlayButtonRow();
 
+  //console.log("Chamou")
+
   const embed = {
     footer: {
-      text: `Duração (duration): ${currentTrack.durationFormatted}\nProgresso (progress): música ${playlistCurrentPosition} de ${playlistLength}.\nAutor (author): ${playlistAuthor}.\nAdicionado por (added by): ${addedBy}.`,
+      text: `Duração (duration): ${currentTrack.duration}\nProgresso (progress): música ${playlistCurrentPosition} de ${playlistLength}.\nAutor (author): ${playlistAuthor}.\nAdicionado por (added by): ${addedBy}.`,
       icon_url: "",
     },
     image: {
-      url: currentTrack.thumbnail.url,
+      url: currentTrack.thumbnail,
     },
     thumbnail: {
       url: "",

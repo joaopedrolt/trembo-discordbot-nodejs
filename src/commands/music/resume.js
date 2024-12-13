@@ -42,7 +42,7 @@ export default {
 
       return await interaction.reply(
         resumeEmbed(
-          queue.currentTrack.raw.title,
+          queue.currentTrack.title,
           checkMemberName(
             interaction.member.nickname,
             interaction.member.user.username

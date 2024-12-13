@@ -6,7 +6,7 @@ import { getQueueEmptyEmbed } from "../embeds/music/exceptionsEmbed.js";
 import { getPlayPlaylistEmbed } from "../embeds/music/playEmbed.js";
 
 export default class QueueController {
-  constructor() {}
+  constructor() { }
 
   guildId = "";
 
@@ -45,82 +45,92 @@ export default class QueueController {
   }
 
   setTrackMoveEventListener(queue) {
-    queue.dispatcher.on("finish", () => {
-      if (this.playlists.length != 0) {
-        if (this.anyPlaylistOngoing) {
-          this.playlistTrackCounter++;
+    const finishListenersCount = queue.dispatcher.listenerCount("finish");
 
-          if (this.playlists[0].length == this.playlistTrackCounter) {
-            this.anyPlaylistOngoing = false;
-            this.playlists.shift();
-            this.playlistTrackCounter = 0;
+    if (finishListenersCount < 2) {
+      queue.dispatcher.on("finish", () => {
+        if (this.playlists.length != 0) {
+          if (this.anyPlaylistOngoing) {
+            // console.log(this.playlists[0].length)
+            // console.log(this.playlistTrackCounter)
+            // console.log("------------------\n")
 
-            if (this.playlists.length != 0) {
-              if (this.queueReply[this.nextTrackIndex]) {
-                if (this.nextTrackIndex == this.playlists[0].startIndex) {
-                  this.movingIntoPlaylist = true;
-                  this.anyPlaylistOngoing = true;
+            if (this.playlists[0].length == this.playlistTrackCounter) {
+              this.anyPlaylistOngoing = false;
+              this.playlists.shift();
+              this.playlistTrackCounter = 0;
+
+              if (this.playlists.length != 0) {
+                if (this.queueReply[this.nextTrackIndex]) {
+                  if (this.nextTrackIndex == this.playlists[0].startIndex) {
+                    this.movingIntoPlaylist = true;
+                    this.anyPlaylistOngoing = true;
+                  }
                 }
               }
             }
-          }
-        } else {
-          if (this.queueReply[this.nextTrackIndex]) {
-            if (this.nextTrackIndex == this.playlists[0].startIndex) {
-              this.movingIntoPlaylist = true;
-              this.anyPlaylistOngoing = true;
+
+            this.playlistTrackCounter++;
+          } else {
+            if (this.queueReply[this.nextTrackIndex]) {
+              if (this.nextTrackIndex == this.playlists[0].startIndex) {
+                this.movingIntoPlaylist = true;
+                this.anyPlaylistOngoing = true;
+              }
             }
           }
         }
-      }
 
-      if (
-        !(!this.queueReply[this.nextTrackIndex] && !this.anyPlaylistOngoing)
-      ) {
-        this.currentTrack = queue.history.queue.__current.raw;
-      }
-
-      if (this.anyPlaylistOngoing) {
-        this.playlists[0].reply.edit(
-          getPlayPlaylistEmbed(
-            this.playlists[0].title,
-            this.playlists[0].length,
-            this.playlists[0].url,
-            this.playlists[0].author,
-            this.playlistTrackCounter + 1,
-            this.playlists[0].addedBy,
-            this.currentTrack
-          )
-        );
-      }
-
-      if (this.anyPlaylistOngoing) {
-        if (!(!this.movingIntoPlaylist && this.anyPlaylistOngoing)) {
-          this.moveActiveRow();
+        if (
+          (this.queueReply[this.nextTrackIndex])
+        ) {
+          this.currentTrack = queue.currentTrack;
         }
-      } else {
-        if (this.queueReply[this.nextTrackIndex]) {
-          this.moveActiveRow();
-        } else {
-          this.moveActiveRow(true);
 
-          if (!this.stopCommandIssued) {
-            this.queueReply[this.currentTrackIndex].reply(getQueueEmptyEmbed());
-          } else {
-            this.stopCommandIssued = false;
+        if (this.anyPlaylistOngoing) {
+          this.currentTrack = queue.__current;
+          
+          this.playlists[0].reply.edit(
+            getPlayPlaylistEmbed(
+              this.playlists[0].title,
+              this.playlists[0].length,
+              this.playlists[0].url,
+              this.playlists[0].author,
+              this.playlistTrackCounter,
+              this.playlists[0].addedBy,
+              this.currentTrack
+            )
+          );
+        }
+
+        if (this.anyPlaylistOngoing) {
+          if (!(!this.movingIntoPlaylist && this.anyPlaylistOngoing)) {
+            this.moveActiveRow();
           }
+        } else {
+          if (this.queueReply[this.nextTrackIndex]) {
+            this.moveActiveRow();
+          } else {
+            this.moveActiveRow(true);
 
-          this.queueReply = [];
-          this.currentTrackIndex = 0;
-          this.nextTrackIndex = this.currentTrackIndex + 1;
-          this.stopCommandIssued = false;
-          this.anyPlaylistOngoing = false;
-          this.playlists = [];
-          this.movingIntoPlaylist = false;
-          this.playlistTrackCountethis;
-          this.currentTrack = {};
+            if (!this.stopCommandIssued) {
+              this.queueReply[this.currentTrackIndex].reply(getQueueEmptyEmbed());
+            } else {
+              this.stopCommandIssued = false;
+            }
+
+            this.queueReply = [];
+            this.currentTrackIndex = 0;
+            this.nextTrackIndex = this.currentTrackIndex + 1;
+            this.stopCommandIssued = false;
+            this.anyPlaylistOngoing = false;
+            this.playlists = [];
+            this.movingIntoPlaylist = false;
+            this.playlistTrackCountethis;
+            this.currentTrack = {};
+          }
         }
-      }
-    });
+      });
+    }
   }
 }
