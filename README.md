@@ -53,7 +53,7 @@ Bot de música para Discord com suporte a músicas do YouTube.
 5. Execute o arquivo de entrada (main):
    
 ```bash
-    node bot.js
+    node src/bot.js
 ```
 
 ## Autoria
