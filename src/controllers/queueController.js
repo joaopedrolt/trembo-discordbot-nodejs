@@ -49,12 +49,16 @@ export default class QueueController {
 
     if (finishListenersCount < 2) {
       queue.dispatcher.on("finish", () => {
+
+        if (this.stopCommandIssued) {
+          this.moveActiveRow(true);
+
+          this.clear();
+          return;
+        }
+
         if (this.playlists.length != 0) {
           if (this.anyPlaylistOngoing) {
-            // console.log(this.playlists[0].length)
-            // console.log(this.playlistTrackCounter)
-            // console.log("------------------\n")
-
             if (this.playlists[0].length == this.playlistTrackCounter) {
               this.anyPlaylistOngoing = false;
               this.playlists.shift();
@@ -89,7 +93,7 @@ export default class QueueController {
 
         if (this.anyPlaylistOngoing) {
           this.currentTrack = queue.__current;
-          
+
           this.playlists[0].reply.edit(
             getPlayPlaylistEmbed(
               this.playlists[0].title,
@@ -101,36 +105,35 @@ export default class QueueController {
               this.currentTrack
             )
           );
-        }
 
-        if (this.anyPlaylistOngoing) {
           if (!(!this.movingIntoPlaylist && this.anyPlaylistOngoing)) {
             this.moveActiveRow();
           }
-        } else {
+        }
+
+        if (!this.anyPlaylistOngoing) {
           if (this.queueReply[this.nextTrackIndex]) {
             this.moveActiveRow();
           } else {
             this.moveActiveRow(true);
 
-            if (!this.stopCommandIssued) {
-              this.queueReply[this.currentTrackIndex].reply(getQueueEmptyEmbed());
-            } else {
-              this.stopCommandIssued = false;
-            }
-
-            this.queueReply = [];
-            this.currentTrackIndex = 0;
-            this.nextTrackIndex = this.currentTrackIndex + 1;
-            this.stopCommandIssued = false;
-            this.anyPlaylistOngoing = false;
-            this.playlists = [];
-            this.movingIntoPlaylist = false;
-            this.playlistTrackCountethis;
-            this.currentTrack = {};
+            this.queueReply[this.currentTrackIndex].reply(getQueueEmptyEmbed());
+            this.clear();
           }
         }
       });
     }
+  }
+
+  clear() {
+    this.queueReply = [];
+    this.currentTrackIndex = 0;
+    this.nextTrackIndex = this.currentTrackIndex + 1;
+    this.stopCommandIssued = false;
+    this.anyPlaylistOngoing = false;
+    this.playlists = [];
+    this.movingIntoPlaylist = false;
+    this.playlistTrackCountethis;
+    this.currentTrack = {};
   }
 }
