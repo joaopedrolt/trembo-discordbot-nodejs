@@ -9,6 +9,8 @@ import skipEmbed from "../../embeds/music/skipEmbed.js";
 import stopEmbed from "../../embeds/music/stopEmbed.js";
 import isYoutubePlaylist from "../../utils/urlTools/isYoutubePlaylist.js";
 import isValidUrl from "../../utils/urlTools/isValidUrl.js";
+import tryExtractStandaloneVideo from "../../utils/urlTools/tryExtractStandaloneVideo.js";
+
 import GuildQueueController from "../../controllers/guildQueueController.js";
 import checkMemberName from "../../utils/checkMemberName.js";
 import {
@@ -128,10 +130,13 @@ export default {
       }
 
       if (isYoutubePlaylist(userSongInput)) {
-        return interaction.reply({
-          content: `Essa opção não suporta link de playlist, utilize "/play playlist" (this option does not support playlist links, use /play playlist instead).`,
-          ephemeral: true,
-        });
+        userSongInput = tryExtractStandaloneVideo(userSongInput);
+
+        if (!userSongInput)
+          return interaction.reply({
+            content: `Essa opção não suporta link de playlist, utilize "/play playlist" (this option does not support playlist links, use /play playlist instead).`,
+            ephemeral: true,
+          });
       }
 
       const result = await client.player.search(userSongInput, {
@@ -206,6 +211,12 @@ export default {
         return interaction.reply({
           content:
             "Essa opção apenas suporta links de playlist do youtube. (this option only supports youtube playlist links).",
+          ephemeral: true,
+        });
+      } else if (tryExtractStandaloneVideo(userSongInput)) {
+        return interaction.reply({
+          content:
+            "Essa opção apenas suporta links de playlist do youtube. (this option only supports youtube playlist links. Standalone).",
           ephemeral: true,
         });
       }
