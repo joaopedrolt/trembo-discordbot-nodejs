@@ -144,6 +144,8 @@ export default {
         searchEngine: QueryType.YOUTUBE_VIDEO,
       });
 
+      console.log(result)
+
       if (!result._data.tracks || result._data.tracks.length === 0) {
         return interaction.reply({
           content:
