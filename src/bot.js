@@ -20,7 +20,9 @@ client.player = new Player(client, {
 });
 
 //client.player.extractors.loadDefault();
-client.player.extractors.register(YoutubeiExtractor, {});
+client.player.extractors.register(YoutubeiExtractor, {
+  cookies: "./cookies.txt",
+});
 
 // client.player = new Player();
 // client.player.extractors.register(YoutubeiExtractor, {});
