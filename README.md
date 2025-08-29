@@ -56,6 +56,23 @@ Bot de música para Discord com suporte a músicas do YouTube.
     node src/bot.js
 ```
 
+
+## Comandos do Bot
+
+| Comando                                 | Descrição                                                        |
+|-----------------------------------------|------------------------------------------------------------------|
+| `/play search <songname>`               | Busca e toca uma música do YouTube pelo nome                      |
+| `/play playlist <playlisturl>`          | Toca uma playlist do YouTube pela URL                             |
+| `/play url <songurl>`                   | Toca uma música do YouTube pela URL                               |
+| `/pause`                                | Pausa a música atual                                             |
+| `/resume`                               | Retoma a música pausada                                          |
+| `/skip`                                 | Pula para a próxima música da fila                                |
+| `/stop`                                 | Encerra a fila de reprodução                                      |
+| `/ping`                                 | Mostra o ping do bot                                             |
+| `/trembohelp`                           | Mostra todos os comandos disponíveis                              |
+
+> Use `/trembohelp` no Discord para ver todos os comandos e detalhes de uso.
+
 ## Autoria
 
 Este projeto foi criado por mim, João Pedro Lima Teixeira, como uma iniciativa pessoal para desenvolver minhas habilidades, qualquer utilização desse software deve obrigatoriamente conter créditos.
